@@ -160,3 +160,12 @@ use this rule does the server neeeds to push updates?
 sse or websockets
 does the client needs to talk back?
 websockets
+
+
+
+setup of the database 
+postgress and neon . we broacasting the data;
+
+teh data base is the source of the record and the websocketsn are just distribution layer.
+
+we using postgress neon postgress.
