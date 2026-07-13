@@ -9,11 +9,11 @@ import { db } from "../db/db.js";
 import { getMatchStatus } from "../utils/match-status.js";
 import { desc } from "drizzle-orm";
 
-export const matchesRouter = Router();
+export const matchRouter = Router();
 
 const MAX_LIMIT = 100; // Define a maximum limit for the number of matches to return
 
-matchesRouter.get("/", async (req, res) => {
+matchRouter.get("/", async (req, res) => {
   const parsed = listMatchesQuerySchema.safeParse(req.query); // Validate the query parameters against the schema
   if (!parsed.success) {
     return res.status(400).json({
@@ -40,7 +40,7 @@ matchesRouter.get("/", async (req, res) => {
   }
 });
 
-matchesRouter.post("/", async (req, res) => {
+matchRouter.post("/", async (req, res) => {
   const parsed = createMatchSchema.safeParse(req.body); // Validate the request body against the schema
 
   if (!parsed.success) {
@@ -66,6 +66,10 @@ matchesRouter.post("/", async (req, res) => {
         status: getMatchStatus(startTime, endTime), // Determine the match status based on start and end times
       })
       .returning();
+
+      if(res.app.locals.broadcastMatchCreated) {
+        res.app.locals.broadcastMatchCreated(event); // Broadcast the match creation event to all connected WebSocket clients
+      }
 
     res
       .status(201)
