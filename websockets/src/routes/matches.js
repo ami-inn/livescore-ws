@@ -16,12 +16,10 @@ const MAX_LIMIT = 100; // Define a maximum limit for the number of matches to re
 matchesRouter.get("/", async (req, res) => {
   const parsed = listMatchesQuerySchema.safeParse(req.query); // Validate the query parameters against the schema
   if (!parsed.success) {
-    return res
-      .status(400)
-      .json({
-        errors: "invalid query parameters",
-        details: JSON.stringify(parsed.error),
-      }); // Return validation errors if any
+    return res.status(400).json({
+      errors: "invalid query parameters",
+      details: parsed.error.issues,
+    }); // Return validation errors if any
   }
 
   const limit = Math.min(parsed.data.limit ?? 50, MAX_LIMIT); // Default to 50 if not provided, and cap at MAX_LIMIT
@@ -30,33 +28,31 @@ matchesRouter.get("/", async (req, res) => {
     const data = await db
       .select()
       .from(matches)
-      .orderBy((desc(matches.createdAt)))
+      .orderBy(desc(matches.createdAt))
       .limit(limit); // Fetch matches from the database, ordered by start time descending
     res.status(200).json({ data }); // Return the fetched matches
   } catch (error) {
     console.error("Error fetching matches:", error);
-    return res
-      .status(500)
-      .json({
-        errors: "internal server error",
-        details: JSON.stringify(error),
-      }); // Handle any unexpected errors
+    return res.status(500).json({
+      errors: "internal server error",
+      details: JSON.stringify(error),
+    }); // Handle any unexpected errors
   }
 });
 
 matchesRouter.post("/", async (req, res) => {
   const parsed = createMatchSchema.safeParse(req.body); // Validate the request body against the schema
+
+  if (!parsed.success) {
+    return res.status(400).json({
+      errors: "invalid payload",
+      details: parsed.error.issues,
+    }); // Return validation errors if any
+  }
+
   const {
     data: { startTime, endTime, homeScore, awayScore },
   } = parsed;
-  if (!parsed.success) {
-    return res
-      .status(400)
-      .json({
-        errors: "invalid payload",
-        details: JSON.stringify(parsed.error),
-      }); // Return validation errors if any
-  }
 
   try {
     const [event] = await db
@@ -75,11 +71,9 @@ matchesRouter.post("/", async (req, res) => {
       .status(201)
       .json({ message: "Match created successfully", data: event }); // Return the created match
   } catch (error) {
-    return res
-      .status(500)
-      .json({
-        errors: "internal server error",
-        details: JSON.stringify(error),
-      }); // Handle any unexpected errors
+    return res.status(500).json({
+      errors: "internal server error",
+      details: JSON.stringify(error),
+    }); // Handle any unexpected errors
   }
 });
