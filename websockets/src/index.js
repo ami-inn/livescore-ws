@@ -1,5 +1,5 @@
 import express from "express";
-import { matchesRouter } from "./routes/matches";
+import { matchesRouter } from "./routes/matches.js";
 
 
 const app = express();
@@ -9,7 +9,7 @@ app.get("/", (req, res) => {
   res.send("Hello from Express!");
 });
 
-app.use('/', matchesRouter);
+app.use('/matches', matchesRouter);
 
 const PORT = 8000;
 app.listen(PORT, () => {
