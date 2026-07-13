@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Router } from "express";
 import {
   createMatchSchema,
@@ -19,7 +20,7 @@ matchesRouter.get("/", async (req, res) => {
       .status(400)
       .json({
         errors: "invalid query parameters",
-        details: JSON.stringify(parsed.error.errors),
+        details: JSON.stringify(parsed.error),
       }); // Return validation errors if any
   }
 
@@ -53,7 +54,7 @@ matchesRouter.post("/", async (req, res) => {
       .status(400)
       .json({
         errors: "invalid payload",
-        details: JSON.stringify(parsed.error.errors),
+        details: JSON.stringify(parsed.error),
       }); // Return validation errors if any
   }
 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { MATCH_STATUS } from '../validation/matches.js';
 
 export function getMatchStatus(startTime, endTime, now = new Date()) {

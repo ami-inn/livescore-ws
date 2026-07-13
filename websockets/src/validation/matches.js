@@ -1,8 +1,6 @@
 import { z } from 'zod';
 
-const isoDateStringSchema = z.string().trim().min(1).refine((value) => !Number.isNaN(Date.parse(value)), {
-  message: 'must be a valid ISO date string',
-});
+
 
 export const MATCH_STATUS = Object.freeze({
   SCHEDULED: 'scheduled',
@@ -22,8 +20,8 @@ export const createMatchSchema = z.object({
   sport: z.string().trim().min(1),
   homeTeam: z.string().trim().min(1),
   awayTeam: z.string().trim().min(1),
-  startTime: isoDateStringSchema,
-  endTime: isoDateStringSchema,
+  startTime: z.iso.datetime(),
+  endTime: z.iso.datetime(),
   homeScore: z.coerce.number().int().nonnegative().optional(),
   awayScore: z.coerce.number().int().nonnegative().optional(),
 }).superRefine((data, ctx) => {
