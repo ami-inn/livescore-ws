@@ -33,3 +33,10 @@ Act as a Senior Node.js Developer. Using Zod, create a validation file `src/vali
 1. Create `listCommentaryQuerySchema`: an object with an optional `limit` (coerced number, positive, max 100).
 2. Create `createCommentarySchema`: include fields for minute (non-negative int), sequence, period (string), eventType, actor, team, message (required string), metadata (record), and tags (array of strings).
 3. Use ES Modules and export the schemas.
+
+
+
+Act as a Senior Node.js Developer and Generate a POST route for `commentary.js` using Drizzle ORM.
+
+1. Validate `req.params` using `matchIdParamSchema` and `req.body` using `createCommentarySchema`. Insert the data into the `commentary` table and return the result.
+2. Use ES Modules and handle errors with try/catch.
