@@ -26,3 +26,10 @@ Ensure all schemas are exported and use camelCase for variables and the naming c
 for i in {1..60}; do curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8000/matches; done
 
 to check the rate limit is not working
+
+for commentary validation
+Act as a Senior Node.js Developer. Using Zod, create a validation file `src/validation/commentary.js`.
+
+1. Create `listCommentaryQuerySchema`: an object with an optional `limit` (coerced number, positive, max 100).
+2. Create `createCommentarySchema`: include fields for minute (non-negative int), sequence, period (string), eventType, actor, team, message (required string), metadata (record), and tags (array of strings).
+3. Use ES Modules and export the schemas.
