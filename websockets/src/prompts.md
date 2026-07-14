@@ -40,3 +40,11 @@ Act as a Senior Node.js Developer and Generate a POST route for `commentary.js` 
 
 1. Validate `req.params` using `matchIdParamSchema` and `req.body` using `createCommentarySchema`. Insert the data into the `commentary` table and return the result.
 2. Use ES Modules and handle errors with try/catch.
+
+Act as a Senior Node.js Developer. Using Drizzle ORM and Express, generate a GET "/" route for a nested commentary router.
+
+1. Validate req.params using matchIdParamSchema and req.query using listCommentaryQuerySchema.
+2. Fetch data from the "commentary" table where "matchId" equals the ID from params.
+3. Order the results by "createdAt" in descending order so the newest events appear first.
+4. Apply a limit based on the query parameter (defaulting to 100 with a MAX_LIMIT safety cap).
+5. Use ES Modules and handle errors with try/catch
