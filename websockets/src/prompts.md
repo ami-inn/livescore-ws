@@ -21,3 +21,8 @@ Act as a senior software engineer. Generate a validation file using Zod at `src/
 - Create an updateScoreSchema that requires homeScore and awayScore as coerced non-negative integers.
 
 Ensure all schemas are exported and use camelCase for variables and the naming convention described.
+
+
+for i in {1..60}; do curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8000/matches; done
+
+to check the rate limit is not working

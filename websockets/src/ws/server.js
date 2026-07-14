@@ -1,4 +1,5 @@
 import { WebSocket, WebSocketServer } from "ws";
+import { wsArcjet } from "../arcjet.js";
 
 
 
@@ -44,7 +45,24 @@ export function attachWebSocketServer(server) {
     maxPayload: 1024 * 1024, // 1MB
   });
 
-  wss.on("connection", (socket) => {
+  wss.on("connection",async (socket,req) => {
+
+    if(wsArcjet){
+      try {
+        const decision = await wsArcjet.protect(req); // Analyze the WebSocket upgrade request and apply the defined security rules
+         if(decision.isDenied()) {
+          const code = decision.reason.isRateLimit()?1013:1008; // Use 1013 for rate limiting and 1008 for other security violations
+          const reason = decision.reason.isRateLimit()?"Too Many Requests":"Forbidden"; // Provide a reason for the closure
+          socket.close(code, reason); // Close the WebSocket connection with the appropriate code and reason
+          return;
+         }
+      } catch (error) {
+        console.error("Error in Arcjet WebSocket security middleware:", error);
+        socket.close(1011, "Internal Server Error"); // Close the connection with an error code
+        return;
+      }
+    }
+
     (/** @type {{ isAlive?: boolean }} */ (socket)).isAlive = true; // Mark the socket as alive when a new connection is established
     //on connection we are attaching isAlive property to the socket object to keep track of the connection status
     socket.on('pong', () => {
