@@ -1,7 +1,6 @@
+// @ts-nocheck
 import { WebSocket, WebSocketServer } from "ws";
 import { wsArcjet } from "../arcjet.js";
-
-
 
 /**
  * @param {WebSocket} socket
@@ -30,7 +29,6 @@ function broadCast(wss, payload) {
   }
 }
 
-
 /**
  * @param {any} server
  */
@@ -40,46 +38,71 @@ function broadCast(wss, payload) {
 // then you can use broadcastMatchCreated(match) to broadcast a match creation event to all connected clients
 export function attachWebSocketServer(server) {
   const wss = new WebSocketServer({
-    server,
+    noServer: true, // we are not creating a new HTTP server, but attaching to an existing one
     path: "/ws",
     maxPayload: 1024 * 1024, // 1MB
   });
 
-  wss.on("connection",async (socket,req) => {
+  server.on("upgrade", async (req, socket, head) => {
+    const { pathname } = new URL(req.url, `http://${req.headers.host}`);
 
-    if(wsArcjet){
+    if (pathname !== "/ws") {
+      return;
+    }
+
+    if (wsArcjet) {
       try {
-        const decision = await wsArcjet.protect(req); // Analyze the WebSocket upgrade request and apply the defined security rules
-         if(decision.isDenied()) {
-          const code = decision.reason.isRateLimit()?1013:1008; // Use 1013 for rate limiting and 1008 for other security violations
-          const reason = decision.reason.isRateLimit()?"Too Many Requests":"Forbidden"; // Provide a reason for the closure
-          socket.close(code, reason); // Close the WebSocket connection with the appropriate code and reason
+        const decision = await wsArcjet.protect(req);
+
+        if (decision.isDenied()) {
+          if (decision.reason.isRateLimit()) {
+            socket.write("HTTP/1.1 429 Too Many Requests\r\n\r\n");
+          } else {
+            socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
+          }
+          socket.destroy();
           return;
-         }
-      } catch (error) {
-        console.error("Error in Arcjet WebSocket security middleware:", error);
-        socket.close(1011, "Internal Server Error"); // Close the connection with an error code
+        }
+      } catch (e) {
+        console.error("WS upgrade protection error", e);
+        socket.write("HTTP/1.1 500 Internal Server Error\r\n\r\n");
+        socket.destroy();
         return;
       }
     }
 
-    (/** @type {{ isAlive?: boolean }} */ (socket)).isAlive = true; // Mark the socket as alive when a new connection is established
-    //on connection we are attaching isAlive property to the socket object to keep track of the connection status
-    socket.on('pong', () => {
-      /** @type {{ isAlive?: boolean }} */ (socket).isAlive = true; // Mark the socket as alive when a pong is received
+    wss.handleUpgrade(req, socket, head, (ws) => {
+      wss.emit("connection", ws, req);
     });
-    sendJson(socket, { type:'welcome'});
-    socket.on('error',console.error);
-    console.log("New WebSocket connection established");
+  });
+
+  wss.on("connection", async (socket, req) => {
+    socket.isAlive = true;
+    socket.on("pong", () => {
+      socket.isAlive = true;
+    });
+
+    sendJson(socket, { type: "welcome" });
+
+    socket.on("error", () => {
+      socket.terminate();
+    });
+
+    socket.on("close", () => {
+      // cleanupSubscriptions(socket);
+    });
+
+    socket.on("error", console.error);
   });
 
   // iterate over all connected clients every 30 seconds and check if they are alive, if not terminate the connection
   const interval = setInterval(() => {
     wss.clients.forEach((ws) => {
-       // cast ws to include isAlive property to satisfy typing
-       if ((/** @type {{ isAlive?: boolean }} */ (ws)).isAlive === false) return ws.terminate(); // Terminate the connection if the client is not alive
-       (/** @type {{ isAlive?: boolean }} */ (ws)).isAlive = false;
-       ws.ping(); // Send a ping to the client to check if it's alive
+      // cast ws to include isAlive property to satisfy typing
+      if (/** @type {{ isAlive?: boolean }} */ (ws).isAlive === false)
+        return ws.terminate(); // Terminate the connection if the client is not alive
+      /** @type {{ isAlive?: boolean }} */ (ws).isAlive = false;
+      ws.ping(); // Send a ping to the client to check if it's alive
     });
   }, 30000);
 
@@ -88,11 +111,11 @@ export function attachWebSocketServer(server) {
   });
 
   /**
-     * @param {any} match
-     */
-  function broadcastMatchCreated(match){
-    broadCast(wss, {type:'match_created', data: match});
+   * @param {any} match
+   */
+  function broadcastMatchCreated(match) {
+    broadCast(wss, { type: "match_created", data: match });
   }
 
-  return {broadcastMatchCreated};
+  return { broadcastMatchCreated };
 }
