@@ -25,8 +25,9 @@ app.use(securityMiddleware());
 app.use('/matches', matchRouter);
 app.use('/matches', commentaryRouter);
 
-const { broadcastMatchCreated } = attachWebSocketServer(server);
+const { broadcastMatchCreated, broadCastCommentary } = attachWebSocketServer(server);
 app.locals.broadcastMatchCreated = broadcastMatchCreated;
+app.locals.broadCastCommentary = broadCastCommentary  ;
 
 server.listen(PORT, HOST, () => {
   const baseUrl = HOST === '0.0.0.0' ? `http://localhost:${PORT}` : `http://${HOST}:${PORT}`;

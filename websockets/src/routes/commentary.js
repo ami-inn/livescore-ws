@@ -80,6 +80,10 @@ commentaryRouter.post("/:id/commentary", async (req, res) => {
       })
       .returning();
 
+      if(res.app.locals.broadCastCommentary) {
+        res.app.locals.broadCastCommentary(entry.matchId, entry);
+      }
+
     res.status(201).json({ message: "Commentary created successfully", data: entry });
   } catch (error) {
     console.error("Error creating commentary:", error);
