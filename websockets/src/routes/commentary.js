@@ -53,44 +53,36 @@ commentaryRouter.get("/:id/commentary", async (req, res) => {
 });
 
 commentaryRouter.post("/:id/commentary", async (req, res) => {
-  const paramsParsed = matchIdParamSchema.safeParse(req.params);
+  const paramsResult = matchIdParamSchema.safeParse(req.params);
 
-  if (!paramsParsed.success) {
-    return res.status(400).json({
-      errors: "invalid route parameters",
-      details: paramsParsed.error.issues,
-    });
+  if (!paramsResult.success) {
+    return res.status(400).json({ error: 'Invalid match ID.', details: paramsResult.error.issues });
   }
 
-  const bodyParsed = createCommentarySchema.safeParse(req.body);
+  const bodyResult = createCommentarySchema.safeParse(req.body);
 
-  if (!bodyParsed.success) {
-    return res.status(400).json({
-      errors: "invalid payload",
-      details: bodyParsed.error.issues,
-    });
+  if (!bodyResult.success) {
+    return res.status(400).json({ error: 'Invalid commentary payload.', details: bodyResult.error.issues });
   }
 
   try {
-    const [entry] = await db
-      .insert(commentary)
-      .values({
-        matchId: paramsParsed.data.id,
-        ...bodyParsed.data,
-      })
-      .returning();
+    const [result] = await db.insert(commentary).values({
+      matchId: paramsResult.data.id,
+      ...bodyResult.data
+    }).returning();
 
-      if(res.app.locals.broadCastCommentary) {
-        res.app.locals.broadCastCommentary(entry.matchId, entry);
-      }
+    // Broadcast to WebSocket subscribers
+    if(res.app.locals.broadCastCommentary) {
+      console.log(`[WS] Broadcasting commentary to match ${result.matchId}`);
+      res.app.locals.broadCastCommentary(result.matchId, result);
+    } else {
+      console.warn('[WS] broadCastCommentary not available');
+    }
 
-    res.status(201).json({ message: "Commentary created successfully", data: entry });
+    res.status(201).json({ data: result });
   } catch (error) {
-    console.error("Error creating commentary:", error);
-    return res.status(500).json({
-      errors: "internal server error",
-      details: JSON.stringify(error),
-    });
+    console.error('Failed to create commentary:', error);
+    res.status(500).json({ error: 'Failed to create commentary.' });
   }
 });
 

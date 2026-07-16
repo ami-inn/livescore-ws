@@ -169,3 +169,9 @@ postgress and neon . we broacasting the data;
 teh data base is the source of the record and the websocketsn are just distribution layer.
 
 we using postgress neon postgress.
+
+
+
+pub sub system a system that allows messages to be published to a topic and allows subscribers to receive those messages in real time. This is useful for broadcasting updates to multiple clients simultaneously.
+
+with these type of subscriptions

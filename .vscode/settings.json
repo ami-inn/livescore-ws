@@ -1,3 +1,21 @@
 {
-    "dotenv.enableAutocloaking": false
+    "workbench.colorTheme": "Tokyo Night",
+    "editor.tokenColorCustomizations": {
+        "textMateRules": [
+            {
+                "scope": "keyword.other.dotenv",
+                "settings": {
+                    "foreground": "#FF000000"
+                }
+            }
+        ]
+    },
+    "workbench.iconTheme": "vscode-icons",
+    "[javascript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[html]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "js/ts.implicitProjectConfig.checkJs": true
 }
